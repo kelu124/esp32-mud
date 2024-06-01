@@ -23,23 +23,16 @@ author: Mark Frimston - mfrimston@gmail.com
 
 import time
 import socket
-import gc
-import micropython
+import sys
+if sys.platform in ['esp', 'WiPy']:
+    import gc
+    import micropython
 # import the MUD server class
 from mudserver import MudServer
 
 
 # structure defining the rooms in the game. Try adding more rooms to the game!
-rooms = {
-    "Tavern": {
-        "description": "You're in a cozy tavern warmed by an open fire.",
-        "exits": {"outside": "Outside"},
-    },
-    "Outside": {
-        "description": "You're standing outside a tavern. It's raining.",
-        "exits": {"inside": "Tavern"},
-    }
-}
+from rms import rooms
 
 # stores the players in the game
 players = {}
@@ -48,30 +41,6 @@ players = {}
 mud = MudServer()
 print("MUD Starting")
 
-def web_page():
-    pot = can.read()
-    print("CAN =", pot)
-    html = """
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>ESP32 Serveur Web</title>
-            <style>
-                p { font-size: 36px; }
-            </style>
-        </head>
-        <body>
-            <h1>CAN potentiometre = </h1>
-            <p><span>""" + str(pot) + """</span></p>
-        </body>
-    </html>
-    """
-    return html
-
-socketServeur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socketServeur.bind(('', 80))
-socketServeur.listen(5)
 
 # main game loop. We loop forever (i.e. until the program is terminated)
 while True:
@@ -121,7 +90,7 @@ while True:
 
     # go through any new commands sent from players
     for id, command, params in mud.get_commands():
-
+        print("id, command, params",id, command, params)
         # if for any reason the player isn't in the player map, skip them and
         # move on to the next one
         if id not in players:
@@ -248,6 +217,21 @@ while True:
             else:
                 # send back an 'unknown exit' message
                 mud.send_message(id, "Unknown exit '{}'".format(ex))
+
+        elif command == "review":
+            rooms[players[id]["room"]]["description"] = params
+            # go through all the players in the game
+            mud.send_message(id, "You remodel the '{}' room.".format(players[id]["room"]))
+            for pid, pl in players.items():
+                # if player is in the same (new) room and isn't the player
+                # sending the command
+                if players[pid]["room"] == players[id]["room"] \
+                        and pid != id:
+                    # send them a message telling them that the player
+                    # entered the room
+                    mud.send_message(pid,
+                                        "{} remodeled the room.".format(
+                                                    players[id]["name"]))            
 
         # some other, unrecognised command
         else:
