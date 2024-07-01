@@ -347,8 +347,8 @@ class MudServer(object):
                 bytes_to_send = bytearray(data, 'latin1')
             else:
                 bytes_to_send = bytearray(data, "utf-8")
-            if len(bytes_to_send):
-                print(bytes_to_send)
+            #if len(bytes_to_send):
+            #    print(bytes_to_send)
             client_socket = self._clients[clid].socket
             client_socket.sendall(bytes_to_send)
             # KeyError will be raised if there is no client with the given id in
