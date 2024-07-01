@@ -161,6 +161,17 @@ while True:
         # commands to the game!
 
         # 'help' command
+        elif command == "goto":
+            name = params.strip()
+            if name in rooms.keys():
+                players[id]["room"] = name
+                mud.send_message(id, "You arrive in the place called '"+name+"'.")
+                look(id)
+                if name not in players[id]["remember"]:
+                    players[id]["remember"].append(players[id]["room"])
+                    players[id]["remember"] = list(set(players[id]["remember"]))
+            else:
+                mud.send_message(id, "It seems you can't reach there.")
         elif command == "help":
 
             # send the player back the list of possible commands
@@ -178,6 +189,9 @@ while True:
                 id,
                 "  go <exit>      - Moves through the exit "
                 + "specified, e.g.\n    'go outside'",
+            )
+            mud.send_message(
+                id, "  goto      - you go to one of the rooms"
             )
             mud.send_message(id, "\nCommands - build:")
             mud.send_message(
@@ -286,7 +300,7 @@ while True:
                 rm = rooms[players[id]["room"]]
                 if rm not in players[id]["remember"]:
                     players[id]["remember"].append(players[id]["room"])
-                    players[id]["remember"]) = list(set(players[id]["remember"])))
+                    players[id]["remember"] = list(set(players[id]["remember"]))
 
                 # go through all the players in the game
                 for pid, pl in players.items():
