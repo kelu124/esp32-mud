@@ -134,7 +134,8 @@ while True:
         # move on to the next one
         if id not in players:
             continue
-
+        with open("log.log","a") as f:
+            f.write("- "+str(id)+" __ "+str(command)+" __ "+str(params)+"\n")
         # if the player hasn't given their name yet, use this first command as
         # their name and move them to the starting room.
         if players[id]["name"] is None:
@@ -246,9 +247,12 @@ while True:
         elif command == "describe":
             desc = params.strip()
              # store the player's current room
-            rm = rooms[players[id]["room"]]
-            rm["description"] = desc
-            mud.send_message(id, ">> You reshaped the current room.")
+            if players[id]["room"] == "Tavern":
+                mud.send_message(id, ">> This one is quite fixed =)")
+            else:
+                rm = rooms[players[id]["room"]]
+                rm["description"] = desc
+                mud.send_message(id, ">> You reshaped the current room.")
 
         elif command == "link":
             links = [x.strip() for x in params.strip().split(" - ")]
